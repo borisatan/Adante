@@ -1,56 +1,75 @@
-# Welcome to your Expo app 👋
+# Andante
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A calm, offline-first habit tracker for iOS and Android. Build daily habits, check them off with a tap, and watch your consistency fill in on a GitHub-style contribution grid.
 
-## Get started
+Built with [Expo](https://expo.dev) (SDK 57), React Native and TypeScript.
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- **Contribution-grid tracking** — each habit shows a tile grid of your history, so progress is visible at a glance.
+- **Streaks & stats** — current and best streaks are computed locally and surfaced per habit.
+- **Reminders** — schedule local notifications per habit, with per-weekday control.
+- **Home-screen widget (Android)** — a resizable tile grid with one-tap check-off, kept in sync with the app.
+- **Full customization** — pick from the full [Lucide](https://lucide.dev) icon set and a curated color palette per habit.
+- **Offline-first** — everything is stored on-device in SQLite; no account required.
+- **Import / share** — move your data with the built-in sharing flow.
 
-2. Start the app
+## Tech stack
 
-   ```bash
-   npx expo start
-   ```
+| Area | Choice |
+| --- | --- |
+| Framework | Expo SDK 57, React Native 0.86, React 19 |
+| Routing | `expo-router` (file-based) |
+| State | Zustand |
+| Persistence | `expo-sqlite` |
+| Notifications | `expo-notifications` |
+| Widget | `react-native-android-widget` |
+| Icons | `lucide-react-native` |
+| Language | TypeScript |
 
-In the output, you'll find options to open the app in a
+## Getting started
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+**Prerequisites:** Node.js 20+, the [Expo CLI](https://docs.expo.dev/more/expo-cli/), and (for native builds) Xcode and/or Android Studio.
 
 ```bash
-npm run reset-project
+# 1. Install dependencies
+npm install
+
+# 2. Start the dev server
+npm start
+
+# or run directly on a platform (requires a native build)
+npm run ios
+npm run android
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+> This app relies on native modules (SQLite, notifications, the Android widget), so it needs a [development build](https://docs.expo.dev/develop/development-builds/introduction/) rather than Expo Go.
 
-### Other setup steps
+## Project structure
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```
+src/
+├── app/            # Screens & navigation (expo-router: index, habit/[id], habit-editor, settings)
+├── db/             # SQLite setup, migrations, and repositories
+├── domain/         # Core logic: dates, grid data, streaks, shared types
+├── features/       # UI feature modules (habits list/cards, editor pickers)
+├── icons/          # Lucide icon catalog and the HabitIcon renderer
+├── notifications/  # Reminder scheduling
+├── store/          # Zustand store (useHabitStore)
+├── theme/          # Design tokens (palette, spacing, radii, borders)
+└── widget/         # Android home-screen widget + config
+```
 
-## Learn more
+## Scripts
 
-To learn more about developing your project with Expo, look at the following resources:
+| Command | Description |
+| --- | --- |
+| `npm start` | Start the Expo dev server |
+| `npm run ios` | Build and run on iOS |
+| `npm run android` | Build and run on Android |
+| `npm run lint` | Lint with Expo's ESLint config |
+| `npm test` | Run the Jest test suite |
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## License
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Private project — all rights reserved.
