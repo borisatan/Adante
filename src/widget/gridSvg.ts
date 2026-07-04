@@ -4,8 +4,6 @@ import { FADED_ALPHA, FADED_ALPHA_WEAK } from '@/theme/theme';
 
 // Mirror the dashboard card grid (HabitCard: TILE 11, GAP 3).
 export const GRID_TILE = 11;
-export const GRID_TILE_MIN = 11;
-export const GRID_TILE_MAX = 22;
 export const GRID_GAP = 3;
 
 export interface GridSvg {
@@ -55,10 +53,4 @@ export function buildGridSvg(
 /** How many week columns fit a given content width in dp. */
 export function columnsForWidth(contentWidthDp: number, tile: number = GRID_TILE): number {
   return Math.max(1, Math.floor((contentWidthDp + GRID_GAP) / (tile + GRID_GAP)));
-}
-
-/** Largest tile size (clamped) that fits 7 rows into the given content height. */
-export function tileForHeight(contentHeightDp: number): number {
-  const fit = Math.floor((contentHeightDp + GRID_GAP) / 7) - GRID_GAP;
-  return Math.max(GRID_TILE_MIN, Math.min(GRID_TILE_MAX, fit));
 }

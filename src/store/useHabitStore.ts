@@ -101,7 +101,10 @@ export const useHabitStore = create<HabitState>((set, get) => ({
   },
 
   reorderHabits: (orderedIds) => {
-    habitRepo.setPositions(orderedIds);
+    // Update in-memory order first so the list reflects the drop in the same
+    // frame it's released. Persisting to SQLite synchronously here blocks the
+    // JS thread during the drop animation, which makes the reordered card flash
+    // back to its old slot before settling — so defer the write off this frame.
     set((s) => {
       const byId = new Map(s.habits.map((h) => [h.id, h]));
       const ordered = orderedIds
@@ -113,6 +116,7 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       const rest = s.habits.filter((h) => !orderedIds.includes(h.id));
       return { habits: [...ordered, ...rest] };
     });
+    setTimeout(() => habitRepo.setPositions(orderedIds), 0);
   },
 }));
 

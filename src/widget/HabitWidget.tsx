@@ -7,7 +7,7 @@ import type { DateISO, Habit } from '@/domain/types';
 import type { CompletionSet } from '@/domain/types';
 import { widgetIconSvg } from '@/icons/widgetSvg';
 
-import { buildGridSvg, columnsForWidth, tileForHeight } from './gridSvg';
+import { buildGridSvg, columnsForWidth, GRID_TILE } from './gridSvg';
 
 // Mirrors the app dashboard card exactly (HabitCard + CheckButton). See
 // src/theme/theme.ts and src/features/habits/*.
@@ -35,10 +35,9 @@ function argb(hex: string, alpha: number): ColorProp {
   return `#${a}${hex.replace('#', '')}` as ColorProp;
 }
 
-// Fallbacks for renders where WidgetInfo has no measured size yet (e.g. the
-// configuration activity reports width/height 0), based on the 3x2 target cell.
+// Fallback for renders where WidgetInfo has no measured width yet (e.g. the
+// configuration activity reports width 0), based on the 3x2 target cell.
 const DEFAULT_WIDTH = 180;
-const DEFAULT_HEIGHT = 120;
 
 const CHECK_MARK = (color: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
@@ -49,20 +48,17 @@ interface Props {
   today: DateISO;
   /** widget width in dp, from WidgetInfo */
   widthDp: number;
-  /** widget height in dp, from WidgetInfo */
-  heightDp: number;
 }
 
-export function HabitWidget({ habit, completions, today, widthDp, heightDp }: Props) {
+export function HabitWidget({ habit, completions, today, widthDp }: Props) {
   const doneToday = completions.has(today);
 
   const w = widthDp > 0 ? widthDp : DEFAULT_WIDTH;
-  const h = heightDp > 0 ? heightDp : DEFAULT_HEIGHT;
   const contentW = w - PADDING * 2;
-  const contentH = h - PADDING * 2 - CONTROL_SIZE - CARD_GAP;
-  const tile = tileForHeight(contentH);
-  const cols = columnsForWidth(contentW, tile);
-  const grid = buildGridSvg(completions, cols, today, habit.color, tile);
+  // Match the dashboard card exactly: fixed 11px tiles, top-aligned under the
+  // header, rather than growing to fill the widget height.
+  const cols = columnsForWidth(contentW, GRID_TILE);
+  const grid = buildGridSvg(completions, cols, today, habit.color, GRID_TILE);
 
   return (
     <FlexWidget
