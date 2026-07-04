@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react-native';
 import { Pressable, StyleSheet } from 'react-native';
 
-import { theme } from '@/theme/theme';
+import { BORDER_ALPHA, FADED_ALPHA, theme, withAlpha } from '@/theme/theme';
 
 interface Props {
   color: string;
@@ -10,7 +10,7 @@ interface Props {
   size?: number;
 }
 
-export function CheckButton({ color, done, onPress, size = 48 }: Props) {
+export function CheckButton({ color, done, onPress, size = 44 }: Props) {
   return (
     <Pressable
       onPress={onPress}
@@ -21,14 +21,16 @@ export function CheckButton({ color, done, onPress, size = 48 }: Props) {
           width: size,
           height: size,
           borderRadius: theme.radius.check,
-          backgroundColor: done ? color : theme.colors.cardRaised,
+          backgroundColor: done ? color : withAlpha(color, FADED_ALPHA),
+          borderWidth: theme.border.width,
+          borderColor: done ? 'transparent' : withAlpha(color, BORDER_ALPHA),
           opacity: pressed ? 0.7 : 1,
         },
       ]}
     >
       <Check
         size={size * 0.5}
-        color={done ? '#0B1220' : theme.colors.textSecondary}
+        color={done ? theme.colors.background : color}
         strokeWidth={3}
       />
     </Pressable>

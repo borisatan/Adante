@@ -1,6 +1,12 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useDerivedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { theme } from '@/theme/theme';
 
@@ -20,14 +26,42 @@ const WEEKDAYS = [
   { iso: 7, label: 'Sun' },
 ];
 
-const ALL_DAYS = WEEKDAYS.map((d) => d.iso);
 const DEFAULT_TIME = '09:00';
+
+const TOGGLE_W = 52;
+const TOGGLE_H = 32;
+const TOGGLE_PAD = 3;
+const THUMB = TOGGLE_H - TOGGLE_PAD * 2;
 
 function timeToDate(time: string): Date {
   const [h, m] = time.split(':').map(Number);
   const d = new Date();
   d.setHours(h, m, 0, 0);
   return d;
+}
+
+/** A custom, animated on/off toggle (replaces the default RN Switch). */
+function AnimatedToggle({ value, onToggle }: { value: boolean; onToggle: (next: boolean) => void }) {
+  const progress = useDerivedValue(() => withTiming(value ? 1 : 0, { duration: 200 }), [value]);
+
+  const trackStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      progress.value,
+      [0, 1],
+      [theme.colors.cardRaised, theme.colors.accent],
+    ),
+  }));
+  const thumbStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: progress.value * (TOGGLE_W - THUMB - TOGGLE_PAD * 2) }],
+  }));
+
+  return (
+    <Pressable hitSlop={8} onPress={() => onToggle(!value)}>
+      <Animated.View style={[styles.track, trackStyle]}>
+        <Animated.View style={[styles.thumb, thumbStyle]} />
+      </Animated.View>
+    </Pressable>
+  );
 }
 
 export function ReminderPicker({ time, days, onChange }: Props) {
@@ -38,11 +72,9 @@ export function ReminderPicker({ time, days, onChange }: Props) {
     <View style={styles.container}>
       <View style={styles.toggleRow}>
         <Text style={styles.label}>Reminder</Text>
-        <Switch
+        <AnimatedToggle
           value={enabled}
-          onValueChange={(on) => onChange(on ? DEFAULT_TIME : null, on ? ALL_DAYS : [])}
-          trackColor={{ true: theme.colors.cardRaised, false: theme.colors.cardRaised }}
-          thumbColor={enabled ? theme.colors.textPrimary : theme.colors.textSecondary}
+          onToggle={(on) => onChange(on ? DEFAULT_TIME : null, [])}
         />
       </View>
       {enabled && (
@@ -72,14 +104,15 @@ export function ReminderPicker({ time, days, onChange }: Props) {
               value={timeToDate(time ?? DEFAULT_TIME)}
               mode="time"
               is24Hour
-              onChange={(event, date) => {
+              onValueChange={(_event, date) => {
                 setShowTimePicker(false);
-                if (event.type === 'set' && date) {
+                if (date) {
                   const hh = String(date.getHours()).padStart(2, '0');
                   const mm = String(date.getMinutes()).padStart(2, '0');
                   onChange(`${hh}:${mm}`, days);
                 }
               }}
+              onDismiss={() => setShowTimePicker(false)}
             />
           )}
         </>
@@ -100,6 +133,19 @@ const styles = StyleSheet.create({
   label: {
     color: theme.colors.textSecondary,
     fontSize: theme.font.body,
+  },
+  track: {
+    width: TOGGLE_W,
+    height: TOGGLE_H,
+    borderRadius: TOGGLE_H / 2,
+    padding: TOGGLE_PAD,
+    justifyContent: 'center',
+  },
+  thumb: {
+    width: THUMB,
+    height: THUMB,
+    borderRadius: THUMB / 2,
+    backgroundColor: theme.colors.white,
   },
   daysRow: {
     flexDirection: 'row',

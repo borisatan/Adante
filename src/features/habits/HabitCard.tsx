@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { buildGridWeeks } from '@/domain/gridData';
 import type { CompletionSet, DateISO, Habit } from '@/domain/types';
 import { HabitIcon } from '@/icons/HabitIcon';
-import { theme } from '@/theme/theme';
+import { BORDER_ALPHA, FADED_ALPHA, theme, withAlpha } from '@/theme/theme';
 
 import { CheckButton } from './CheckButton';
 import { HabitGrid } from './HabitGrid';
@@ -42,8 +42,16 @@ export const HabitCard = memo(function HabitCard({
       style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
     >
       <View style={styles.header}>
-        <View style={styles.iconTile}>
-          <HabitIcon slug={habit.icon} size={20} color={theme.colors.textPrimary} />
+        <View
+          style={[
+            styles.iconTile,
+            {
+              backgroundColor: withAlpha(habit.color, FADED_ALPHA),
+              borderColor: withAlpha(habit.color, BORDER_ALPHA),
+            },
+          ]}
+        >
+          <HabitIcon slug={habit.icon} size={26} color={habit.color} />
         </View>
         <View style={styles.titles}>
           <Text style={styles.name} numberOfLines={1}>
@@ -75,8 +83,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.card,
     borderWidth: theme.border.width,
     borderColor: theme.colors.border,
-    padding: theme.spacing.lg,
-    gap: theme.spacing.md,
+    padding: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
   header: {
     flexDirection: 'row',
@@ -84,12 +92,10 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   iconTile: {
-    width: 40,
-    height: 40,
-    borderRadius: theme.radius.control,
-    backgroundColor: theme.colors.cardRaised,
+    width: 44,
+    height: 44,
+    borderRadius: theme.radius.check,
     borderWidth: theme.border.width,
-    borderColor: theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },

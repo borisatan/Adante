@@ -15,10 +15,10 @@ export const theme = {
     white: '#FFFFFF',
   },
   radius: {
-    card: 16, // Monelo rounded-2xl
+    card: 12, // Monelo rounded-xl
     control: 12, // Monelo rounded-xl
     tile: 3,
-    check: 14,
+    check: 12,
   },
   border: {
     // Monelo uses hairline 1px borders (border-2 for emphasis/selection).
@@ -41,3 +41,24 @@ export const theme = {
 } as const;
 
 export type Theme = typeof theme;
+
+/** Returns a hex color as an rgba() string at the given alpha (0–1). */
+export function withAlpha(hex: string, alpha: number): string {
+  let h = hex.replace('#', '');
+  if (h.length === 3) {
+    h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  }
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** Faded tint of a habit color used for unmarked tiles, icons and checkmarks. */
+export const FADED_ALPHA = 0.18;
+
+/** Even fainter tint for tiles before a habit's first completion. */
+export const FADED_ALPHA_WEAK = 0.07;
+
+/** Habit-tinted border for the icon tile and check button. */
+export const BORDER_ALPHA = 0.35;

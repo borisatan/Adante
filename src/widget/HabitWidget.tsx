@@ -1,3 +1,5 @@
+'use no memo';
+
 import { FlexWidget, SvgWidget, TextWidget } from 'react-native-android-widget';
 import type { ColorProp } from 'react-native-android-widget';
 
@@ -5,13 +7,38 @@ import type { DateISO, Habit } from '@/domain/types';
 import type { CompletionSet } from '@/domain/types';
 import { widgetIconSvg } from '@/icons/widgetSvg';
 
-import { buildGridSvg, columnsForWidth } from './gridSvg';
+import { buildGridSvg, columnsForWidth, tileForHeight } from './gridSvg';
 
-const BG = '#151E31';
-const RAISED = '#1E2A44';
-const TEXT = '#F1F5F9';
-const PADDING = 12;
-const CHECK_SIZE = 36;
+// Mirrors the app dashboard card exactly (HabitCard + CheckButton). See
+// src/theme/theme.ts and src/features/habits/*.
+const BG = '#161B2E'; // theme.colors.card
+const BACKGROUND = '#08090F'; // theme.colors.background (check mark when done)
+const TEXT = '#EDF0FA'; // theme.colors.textPrimary
+const SECONDARY = '#8A96B4'; // theme.colors.textSecondary
+const BORDER = '#2A3250'; // theme.colors.border
+const CARD_RADIUS = 12; // theme.radius.card / radius.check
+const PADDING = 12; // theme.spacing.md (card padding)
+const CARD_GAP = 8; // theme.spacing.sm (card gap)
+const HEADER_GAP = 12; // theme.spacing.md (header gap)
+const CONTROL_SIZE = 44; // icon tile & check button (matches card)
+const ICON_SIZE = 26;
+const CHECK_MARK_SIZE = 22; // CheckButton: size * 0.5
+
+// Faded/border tints of the habit color (theme FADED_ALPHA / BORDER_ALPHA),
+// as #AARRGGBB so react-native-android-widget composites them over the card.
+const FADED_ALPHA = 0.18;
+const BORDER_ALPHA = 0.35;
+function argb(hex: string, alpha: number): ColorProp {
+  const a = Math.round(alpha * 255)
+    .toString(16)
+    .padStart(2, '0');
+  return `#${a}${hex.replace('#', '')}` as ColorProp;
+}
+
+// Fallbacks for renders where WidgetInfo has no measured size yet (e.g. the
+// configuration activity reports width/height 0), based on the 3x2 target cell.
+const DEFAULT_WIDTH = 180;
+const DEFAULT_HEIGHT = 120;
 
 const CHECK_MARK = (color: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
@@ -22,12 +49,20 @@ interface Props {
   today: DateISO;
   /** widget width in dp, from WidgetInfo */
   widthDp: number;
+  /** widget height in dp, from WidgetInfo */
+  heightDp: number;
 }
 
-export function HabitWidget({ habit, completions, today, widthDp }: Props) {
+export function HabitWidget({ habit, completions, today, widthDp, heightDp }: Props) {
   const doneToday = completions.has(today);
-  const cols = columnsForWidth(widthDp - PADDING * 2);
-  const grid = buildGridSvg(completions, cols, today, habit.color);
+
+  const w = widthDp > 0 ? widthDp : DEFAULT_WIDTH;
+  const h = heightDp > 0 ? heightDp : DEFAULT_HEIGHT;
+  const contentW = w - PADDING * 2;
+  const contentH = h - PADDING * 2 - CONTROL_SIZE - CARD_GAP;
+  const tile = tileForHeight(contentH);
+  const cols = columnsForWidth(contentW, tile);
+  const grid = buildGridSvg(completions, cols, today, habit.color, tile);
 
   return (
     <FlexWidget
@@ -36,10 +71,12 @@ export function HabitWidget({ habit, completions, today, widthDp }: Props) {
         height: 'match_parent',
         width: 'match_parent',
         backgroundColor: BG,
-        borderRadius: 16,
+        borderRadius: CARD_RADIUS,
+        borderWidth: 1,
+        borderColor: BORDER,
         padding: PADDING,
         flexDirection: 'column',
-        flexGap: 10,
+        flexGap: CARD_GAP,
       }}
     >
       <FlexWidget
@@ -47,36 +84,59 @@ export function HabitWidget({ habit, completions, today, widthDp }: Props) {
           width: 'match_parent',
           flexDirection: 'row',
           alignItems: 'center',
-          flexGap: 8,
+          flexGap: HEADER_GAP,
         }}
       >
-        <SvgWidget
-          svg={widgetIconSvg(habit.icon, habit.color)}
-          style={{ height: 20, width: 20 }}
-        />
-        <FlexWidget style={{ flex: 1, flexDirection: 'row' }}>
-          <TextWidget
-            text={habit.name}
-            maxLines={1}
-            truncate="END"
-            style={{ color: TEXT, fontSize: 15, fontWeight: '600' }}
-          />
-        </FlexWidget>
         <FlexWidget
-          clickAction="TOGGLE_TODAY"
-          clickActionData={{ habitId: habit.id }}
           style={{
-            height: CHECK_SIZE,
-            width: CHECK_SIZE,
-            borderRadius: 12,
-            backgroundColor: doneToday ? (habit.color as ColorProp) : RAISED,
+            height: CONTROL_SIZE,
+            width: CONTROL_SIZE,
+            borderRadius: CARD_RADIUS,
+            backgroundColor: argb(habit.color, FADED_ALPHA),
+            borderWidth: 1,
+            borderColor: argb(habit.color, BORDER_ALPHA),
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
           <SvgWidget
-            svg={CHECK_MARK(doneToday ? '#0B1220' : '#8A94A8')}
-            style={{ height: 18, width: 18 }}
+            svg={widgetIconSvg(habit.icon, habit.color)}
+            style={{ height: ICON_SIZE, width: ICON_SIZE }}
+          />
+        </FlexWidget>
+        <FlexWidget style={{ flex: 1, flexDirection: 'column', flexGap: 2 }}>
+          <TextWidget
+            text={habit.name}
+            maxLines={1}
+            truncate="END"
+            style={{ color: TEXT, fontSize: 17, fontWeight: '600' }}
+          />
+          {habit.description !== '' && (
+            <TextWidget
+              text={habit.description}
+              maxLines={1}
+              truncate="END"
+              style={{ color: SECONDARY, fontSize: 12 }}
+            />
+          )}
+        </FlexWidget>
+        <FlexWidget
+          clickAction="TOGGLE_TODAY"
+          clickActionData={{ habitId: habit.id }}
+          style={{
+            height: CONTROL_SIZE,
+            width: CONTROL_SIZE,
+            borderRadius: CARD_RADIUS,
+            backgroundColor: doneToday ? (habit.color as ColorProp) : argb(habit.color, FADED_ALPHA),
+            borderWidth: 1,
+            borderColor: doneToday ? '#00000000' : argb(habit.color, BORDER_ALPHA),
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <SvgWidget
+            svg={CHECK_MARK(doneToday ? BACKGROUND : habit.color)}
+            style={{ height: CHECK_MARK_SIZE, width: CHECK_MARK_SIZE }}
           />
         </FlexWidget>
       </FlexWidget>
@@ -93,13 +153,15 @@ export function PlaceholderWidget({ message }: { message: string }) {
         height: 'match_parent',
         width: 'match_parent',
         backgroundColor: BG,
-        borderRadius: 16,
+        borderRadius: CARD_RADIUS,
+        borderWidth: 1,
+        borderColor: BORDER,
         padding: PADDING,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <TextWidget text={message} style={{ color: '#8A94A8', fontSize: 13 }} />
+      <TextWidget text={message} style={{ color: SECONDARY, fontSize: 14 }} />
     </FlexWidget>
   );
 }

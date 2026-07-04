@@ -1,10 +1,12 @@
 import { buildGridWeeks } from '@/domain/gridData';
 import type { CompletionSet, DateISO } from '@/domain/types';
+import { FADED_ALPHA, FADED_ALPHA_WEAK } from '@/theme/theme';
 
+// Mirror the dashboard card grid (HabitCard: TILE 11, GAP 3).
 export const GRID_TILE = 11;
+export const GRID_TILE_MIN = 11;
+export const GRID_TILE_MAX = 22;
 export const GRID_GAP = 3;
-const RADIUS = 3;
-const EMPTY_COLOR = '#1C2740';
 
 export interface GridSvg {
   svg: string;
@@ -22,19 +24,23 @@ export function buildGridSvg(
   numWeeks: number,
   today: DateISO,
   color: string,
+  tile: number = GRID_TILE,
 ): GridSvg {
   const weeks = buildGridWeeks(set, numWeeks, today);
-  const step = GRID_TILE + GRID_GAP;
+  const step = tile + GRID_GAP;
+  const radius = Math.max(2, Math.round(tile * 0.28));
   const width = numWeeks * step - GRID_GAP;
   const height = 7 * step - GRID_GAP;
 
   const rects: string[] = [];
   weeks.forEach((week, col) => {
-    week.forEach((tile, row) => {
-      if (tile.state === 'future') return;
-      const fill = tile.state === 'done' ? color : EMPTY_COLOR;
+    week.forEach((t, row) => {
+      if (t.state === 'future') return;
+      // Same tint scheme as the app: full color when done, faded when empty,
+      // and even fainter before the habit's first completion.
+      const opacity = t.state === 'done' ? 1 : t.state === 'empty' ? FADED_ALPHA : FADED_ALPHA_WEAK;
       rects.push(
-        `<rect x="${col * step}" y="${row * step}" width="${GRID_TILE}" height="${GRID_TILE}" rx="${RADIUS}" fill="${fill}"/>`,
+        `<rect x="${col * step}" y="${row * step}" width="${tile}" height="${tile}" rx="${radius}" fill="${color}" fill-opacity="${opacity}"/>`,
       );
     });
   });
@@ -47,6 +53,12 @@ export function buildGridSvg(
 }
 
 /** How many week columns fit a given content width in dp. */
-export function columnsForWidth(contentWidthDp: number): number {
-  return Math.max(1, Math.floor((contentWidthDp + GRID_GAP) / (GRID_TILE + GRID_GAP)));
+export function columnsForWidth(contentWidthDp: number, tile: number = GRID_TILE): number {
+  return Math.max(1, Math.floor((contentWidthDp + GRID_GAP) / (tile + GRID_GAP)));
+}
+
+/** Largest tile size (clamped) that fits 7 rows into the given content height. */
+export function tileForHeight(contentHeightDp: number): number {
+  const fit = Math.floor((contentHeightDp + GRID_GAP) / 7) - GRID_GAP;
+  return Math.max(GRID_TILE_MIN, Math.min(GRID_TILE_MAX, fit));
 }

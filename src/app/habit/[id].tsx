@@ -12,7 +12,7 @@ import { useHabitStore } from '@/store/useHabitStore';
 import { theme } from '@/theme/theme';
 
 const TILE = 18;
-const GAP = 4;
+const GAP = 2;
 const NUM_WEEKS = 53;
 
 export default function HabitDetailScreen() {

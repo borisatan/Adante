@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 
 import type { Tile, WeekColumn } from '@/domain/gridData';
 import type { DateISO } from '@/domain/types';
-import { theme } from '@/theme/theme';
+import { FADED_ALPHA, FADED_ALPHA_WEAK, withAlpha } from '@/theme/theme';
 
 interface Props {
   weeks: WeekColumn[];
@@ -19,7 +19,9 @@ function tileColor(tile: Tile, color: string): string {
     case 'done':
       return color;
     case 'empty':
-      return theme.colors.tileEmpty;
+      return withAlpha(color, FADED_ALPHA);
+    case 'inactive':
+      return withAlpha(color, FADED_ALPHA_WEAK);
     case 'future':
       return 'transparent';
   }

@@ -17,10 +17,8 @@ export function ColorPicker({ value, onChange }: Props) {
           <Pressable
             key={color}
             onPress={() => onChange(color)}
-            style={[styles.cell, selected && styles.cellSelected]}
-          >
-            <View style={[styles.swatch, { backgroundColor: color }]} />
-          </Pressable>
+            style={[styles.cell, { backgroundColor: color }, selected && styles.cellSelected]}
+          />
         );
       })}
     </View>
@@ -37,17 +35,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: theme.radius.control,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
+    borderWidth: theme.border.emphasis,
     borderColor: 'transparent',
   },
   cellSelected: {
     borderColor: theme.colors.textPrimary,
-  },
-  swatch: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
   },
 });

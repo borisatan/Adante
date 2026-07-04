@@ -26,6 +26,7 @@ export function renderHabitWidget(widgetInfo: WidgetInfo): React.JSX.Element {
       completions={completionRepo.getForHabit(habit.id)}
       today={todayISO()}
       widthDp={widgetInfo.width}
+      heightDp={widgetInfo.height}
     />
   );
 }
